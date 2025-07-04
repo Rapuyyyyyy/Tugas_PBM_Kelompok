@@ -12,7 +12,19 @@ class MainScreenWrapper extends StatefulWidget {
 
 class _MainScreenWrapperState extends State<MainScreenWrapper> {
   int _selectedIndex = 0;
-  final PageController _pageController = PageController();
+  late PageController _pageController;
+  
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: _selectedIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   final List<Widget> _pages = [
     const HomeScreen(),
@@ -24,7 +36,12 @@ class _MainScreenWrapperState extends State<MainScreenWrapper> {
     setState(() {
       _selectedIndex = index;
     });
-    _pageController.jumpToPage(index);
+    // Gunakan animasi untuk perpindahan yang lebih mulus
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
   }
 
   @override

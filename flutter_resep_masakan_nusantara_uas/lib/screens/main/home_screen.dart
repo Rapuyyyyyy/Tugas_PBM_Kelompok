@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_resep_masakan_nusantara_uas/data/models/recipe_db_model.dart';
 import 'package:flutter_resep_masakan_nusantara_uas/providers/recipe_provider.dart';
+import 'package:flutter_resep_masakan_nusantara_uas/screens/detail/recipe_api_detail_screen.dart';
+import 'package:flutter_resep_masakan_nusantara_uas/screens/detail/recipe_db_detail_screen.dart';
 import 'package:flutter_resep_masakan_nusantara_uas/widgets/recipe_card.dart';
 import 'package:provider/provider.dart';
-// Import halaman detail yang akan kita buat nanti
-import 'package:flutter_resep_masakan_nusantara_uas/screens/detail/recipe_api_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,7 +16,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String _searchQuery = '';
 
-  // Navigasi ke halaman detail baru
   void _navigateToApiDetail(String recipeId) {
     Navigator.push(
       context,
@@ -25,10 +25,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
   
-  void _navigateToUserRecipeDetail(int recipeId) {
-    debugPrint("Navigasi ke detail resep pengguna dengan ID: $recipeId");
+  void _navigateToUserRecipeDetail(UserRecipe recipe) {
     if (!mounted) return;
-    // Navigator.push(context, MaterialPageRoute(builder: (context) => RecipeDbDetailScreen(recipeId: recipeId)));
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => RecipeDbDetailScreen(recipe: recipe),
+      ),
+    );
   }
 
   @override
@@ -39,7 +43,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Consumer<RecipeProvider>(
         builder: (context, provider, child) {
-          // PERBAIKAN: Kesalahan sintaksis pada blok if ini telah diperbaiki.
           if (provider.isLoading && provider.apiRecipes.isEmpty) {
             return const Center(
               child: Column(
@@ -109,13 +112,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                 imageUrl: (recipe.imageUrl != null && recipe.imageUrl!.isNotEmpty)
                                     ? recipe.imageUrl!
                                     : 'https://placehold.co/600x400/green/white?text=${recipe.title.substring(0,1)}',
-                                onTap: () => _navigateToUserRecipeDetail(recipe.id!),
-                                userRecipe: recipe, // <-- TAMBAHKAN INI
+                                onTap: () => _navigateToUserRecipeDetail(recipe),
+                                userRecipe: recipe,
                               );
                             },
                             childCount: filteredUserRecipes.length,
                           ),
                         ),
+                ),
+                // Jarak antar bagian
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: 16.0),
                 ),
                 _buildSectionTitle(context, 'Populer dari Nusantara'),
                 SliverPadding(

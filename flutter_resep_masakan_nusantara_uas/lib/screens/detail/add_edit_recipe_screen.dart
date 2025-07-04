@@ -5,7 +5,7 @@ import 'package:flutter_resep_masakan_nusantara_uas/providers/recipe_provider.da
 import 'package:provider/provider.dart';
 
 class AddEditRecipeScreen extends StatefulWidget {
-  final UserRecipe? recipe; // Jika null, berarti mode 'Tambah Baru'
+  final UserRecipe? recipe;
 
   const AddEditRecipeScreen({super.key, this.recipe});
 
@@ -24,7 +24,6 @@ class _AddEditRecipeScreenState extends State<AddEditRecipeScreen> {
   @override
   void initState() {
     super.initState();
-    // Inisialisasi controller dengan data resep jika dalam mode 'Edit'
     _titleController = TextEditingController(text: widget.recipe?.title ?? '');
     _ingredientsController = TextEditingController(text: widget.recipe?.ingredients ?? '');
     _instructionsController = TextEditingController(text: widget.recipe?.instructions ?? '');
@@ -51,7 +50,7 @@ class _AddEditRecipeScreenState extends State<AddEditRecipeScreen> {
       final userId = authProvider.currentUser!.id!;
 
       final userRecipe = UserRecipe(
-        id: widget.recipe?.id, // id akan null jika mode 'Tambah'
+        id: widget.recipe?.id,
         title: _titleController.text,
         ingredients: _ingredientsController.text,
         instructions: _instructionsController.text,
@@ -61,15 +60,13 @@ class _AddEditRecipeScreenState extends State<AddEditRecipeScreen> {
 
       try {
         if (widget.recipe == null) {
-          // Mode Tambah
           await recipeProvider.addUserRecipe(userRecipe);
         } else {
-          // Mode Edit
           await recipeProvider.updateUserRecipe(userRecipe);
         }
         
         if (mounted) {
-          Navigator.of(context).pop(); // Kembali ke halaman sebelumnya setelah menyimpan
+          Navigator.of(context).pop();
         }
       } catch (e) {
         if (mounted) {
@@ -130,6 +127,7 @@ class _AddEditRecipeScreenState extends State<AddEditRecipeScreen> {
                 ),
                 keyboardType: TextInputType.url,
               ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _ingredientsController,
                 decoration: const InputDecoration(

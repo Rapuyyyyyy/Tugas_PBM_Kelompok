@@ -36,6 +36,9 @@ class RecipeProvider with ChangeNotifier {
   List<UserRecipe> _allUserRecipes = [];
   List<UserRecipe> get allUserRecipes => _allUserRecipes;
 
+  Map<String, UserRecipe> _userRecipeMap = {};
+  Map<String, UserRecipe> get userRecipeMap => _userRecipeMap;
+
   Future<void> fetchApiRecipes() async {
     _isLoading = true;
     notifyListeners();
@@ -62,6 +65,7 @@ class RecipeProvider with ChangeNotifier {
   
   Future<void> fetchAllUserRecipes() async {
     _allUserRecipes = await _dbHelper.getAllUserRecipes();
+    _userRecipeMap = { for (var recipe in _allUserRecipes) recipe.id.toString(): recipe };
     notifyListeners();
   }
 
@@ -94,7 +98,7 @@ class RecipeProvider with ChangeNotifier {
       userId: _currentUser.id!,
       isApiRecipe: false,
       title: recipe.title,
-      imageUrl: 'https://placehold.co/600x400/green/white?text=${recipe.title.substring(0,1)}',
+      imageUrl: recipe.imageUrl ?? '',
     );
     await _dbHelper.addFavorite(favorite);
     await fetchFavorites();
