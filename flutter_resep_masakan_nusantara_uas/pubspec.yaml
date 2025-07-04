@@ -1,0 +1,40 @@
+name: flutter_resep_masakan_nusantara_uas
+description: "Aplikasi resep masakan nusantara untuk Ujian Akhir Semester."
+publish_to: 'none' 
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.3 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # Icons
+  cupertino_icons: ^1.0.2
+
+  # Networking
+  http: ^1.2.0
+
+  # State Management
+  provider: ^6.1.1
+
+  # Database
+  sqflite: ^2.3.2
+  path: ^1.9.0
+  path_provider: ^2.1.2 # <-- TAMBAHKAN BARIS INI
+
+  # Font
+  google_fonts: ^6.1.0
+
+  # Enkripsi Password (sederhana)
+  crypto: ^3.0.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  sqflite_common_ffi: ^2.3.3
+  
+flutter:
+  uses-material-design: true
