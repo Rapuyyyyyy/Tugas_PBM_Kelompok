@@ -8,8 +8,44 @@ import 'package:flutter_resep_masakan_nusantara_uas/screens/main/main_screen_wra
 import 'package:flutter_resep_masakan_nusantara_uas/utils/app_theme.dart';
 import 'package:provider/provider.dart';
 
+// Impor tambahan untuk tes koneksi
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+/// FUNGSI TES KONEKSI API SECARA LANGSUNG
+Future<void> testApiConnection() async {
+  // Pesan ini akan muncul di Debug Console
+  debugPrint("===================================");
+  debugPrint("MEMULAI TES KONEKSI API LANGSUNG...");
+  
+  final url = Uri.parse('https://www.themealdb.com/api/json/v1/1/filter.php?a=Indonesian');
+  
+  try {
+    final response = await http.get(url);
+    
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      debugPrint("✅ BERHASIL: Koneksi sukses dan data diterima.");
+      debugPrint("Contoh judul resep: ${data['meals'][0]['strMeal']}");
+    } else {
+      debugPrint("❌ GAGAL: Server merespons dengan status code: ${response.statusCode}");
+      debugPrint("Isi respons: ${response.body}");
+    }
+  } catch (e) {
+    debugPrint("❌ GAGAL: Terjadi error saat mencoba menghubungkan ke API.");
+    debugPrint("Detail Error: $e");
+  }
+  
+  debugPrint("===================================");
+}
+
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Panggil fungsi tes sebelum menjalankan aplikasi
+  await testApiConnection();
+
   final dbHelper = DatabaseHelper.instance;
   runApp(MyApp(dbHelper: dbHelper));
 }

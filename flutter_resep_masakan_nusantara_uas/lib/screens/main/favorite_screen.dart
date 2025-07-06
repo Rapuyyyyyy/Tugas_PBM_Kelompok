@@ -67,6 +67,7 @@ class FavoriteScreen extends StatelessWidget {
       itemCount: provider.favoriteRecipes.length,
       itemBuilder: (context, index) {
         final fav = provider.favoriteRecipes[index];
+        // PERBAIKAN: Pastikan semua parameter yang dibutuhkan diberikan
         return _buildRecipeCard(
           context: context,
           provider: provider,
@@ -103,6 +104,7 @@ class FavoriteScreen extends StatelessWidget {
       itemCount: provider.userRecipes.length,
       itemBuilder: (context, index) {
         final recipe = provider.userRecipes[index];
+        // PERBAIKAN: Pastikan semua parameter yang dibutuhkan diberikan
         return _buildRecipeCard(
           context: context,
           provider: provider,
@@ -173,8 +175,7 @@ class FavoriteScreen extends StatelessWidget {
     if (fav.isApiRecipe) {
       Navigator.push(
         context,
-        // PERBAIKAN: Ganti 'mealId' menjadi 'recipeKey'
-        MaterialPageRoute(builder: (_) => RecipeApiDetailScreen(mealId: fav.recipeId)),
+        MaterialPageRoute(builder: (_) => RecipeApiDetailScreen(mealId: fav.recipeId, imageUrl: fav.imageUrl)),
       );
     } else {
       final userRecipe = provider.userRecipeMap[fav.recipeId];

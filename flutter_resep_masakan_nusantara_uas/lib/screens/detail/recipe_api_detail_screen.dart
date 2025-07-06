@@ -4,8 +4,11 @@ import 'package:flutter_resep_masakan_nusantara_uas/data/models/recipe_api_model
 
 class RecipeApiDetailScreen extends StatelessWidget {
   final String mealId;
+  // PERBAIKAN: Tambahkan parameter ini
+  final String imageUrl; 
 
-  const RecipeApiDetailScreen({super.key, required this.mealId});
+  // PERBAIKAN: Tambahkan parameter ini ke konstruktor
+  const RecipeApiDetailScreen({super.key, required this.mealId, required this.imageUrl});
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +20,7 @@ class RecipeApiDetailScreen extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
-            return Center(child: Text('Gagal memuat detail resep.\nError: ${snapshot.error ?? 'Data tidak ditemukan'}'));
+            return Center(child: Text('Gagal memuat detail resep: ${snapshot.error ?? 'Data tidak ditemukan'}'));
           }
 
           final meal = snapshot.data!;
@@ -32,9 +35,13 @@ class RecipeApiDetailScreen extends StatelessWidget {
                     meal.strMeal,
                     style: const TextStyle(shadows: [Shadow(color: Colors.black, blurRadius: 10)]),
                   ),
-                  background: Image.network(
-                    meal.strMealThumb,
-                    fit: BoxFit.cover,
+                  // PERBAIKAN: Gunakan Hero untuk animasi yang mulus
+                  background: Hero(
+                    tag: imageUrl, // Gunakan imageUrl yang dikirim dari halaman sebelumnya
+                    child: Image.network(
+                      meal.strMealThumb,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
               ),
@@ -58,8 +65,7 @@ class RecipeApiDetailScreen extends StatelessWidget {
                       const Divider(height: 32),
                       Text('Langkah-langkah', style: Theme.of(context).textTheme.titleLarge),
                       const SizedBox(height: 8),
-                      // PERBAIKAN: Panggil metode baru untuk menampilkan daftar langkah
-                      _buildStepsList(context, meal.strInstructions),
+                      Text(meal.strInstructions, style: const TextStyle(fontSize: 16, height: 1.5)),
                     ],
                   ),
                 ),
@@ -73,6 +79,8 @@ class RecipeApiDetailScreen extends StatelessWidget {
   
   Widget _buildIngredientsList(BuildContext context, MealDetail meal) {
     return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
@@ -81,40 +89,14 @@ class RecipeApiDetailScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 4.0),
               child: Row(
                 children: [
-                  Expanded(child: Text(meal.ingredients[index])),
-                  Text(meal.measures[index]),
+                  Expanded(child: Text(meal.ingredients[index], style: const TextStyle(fontSize: 15))),
+                  Text(meal.measures[index], style: TextStyle(fontSize: 15, color: Colors.grey.shade700)),
                 ],
               ),
             );
           }),
         ),
       ),
-    );
-  }
-
-  // PERBAIKAN: Widget baru untuk menampilkan daftar langkah-langkah
-  Widget _buildStepsList(BuildContext context, String instructions) {
-    // Memecah string instruksi menjadi daftar berdasarkan baris baru
-    final steps = instructions.split('\r\n').where((s) => s.isNotEmpty).toList();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: List.generate(steps.length, (index) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CircleAvatar(
-                radius: 14,
-                child: Text('${index + 1}'),
-              ),
-              const SizedBox(width: 12),
-              Expanded(child: Text(steps[index], style: const TextStyle(fontSize: 16, height: 1.4))),
-            ],
-          ),
-        );
-      }),
     );
   }
 }

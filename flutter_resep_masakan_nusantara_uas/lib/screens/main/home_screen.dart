@@ -32,15 +32,17 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _navigateToApiDetail(String mealId) {
+  // Navigasi ke halaman detail API
+  void _navigateToApiDetail(String mealId, String imageUrl) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => RecipeApiDetailScreen(mealId: mealId),
+        builder: (context) => RecipeApiDetailScreen(mealId: mealId, imageUrl: imageUrl),
       ),
     );
   }
   
+  // Navigasi ke halaman detail resep buatan pengguna
   void _navigateToUserRecipeDetail(UserRecipe recipe) {
     Navigator.push(
       context,
@@ -53,66 +55,82 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Resep Nusantara')),
-      body: Consumer<RecipeProvider>(
-        builder: (context, provider, child) {
-          return RefreshIndicator(
-            onRefresh: () => provider.fetchApiRecipes(),
-            child: CustomScrollView(
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: TextField(
-                      controller: _searchController,
-                      onSubmitted: (_) => _performSearch(),
-                      decoration: InputDecoration(
-                        hintText: 'Cari soto, rendang...',
-                        prefixIcon: const Icon(Icons.search),
-                        suffixIcon: IconButton(
-                          icon: const Icon(Icons.send),
-                          onPressed: _performSearch,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide.none,
-                        ),
-                        filled: true,
+      // Menggunakan SafeArea untuk menghindari notch/status bar
+      body: SafeArea(
+        child: Consumer<RecipeProvider>(
+          builder: (context, provider, child) {
+            return RefreshIndicator(
+              onRefresh: () => provider.fetchApiRecipes(),
+              child: CustomScrollView(
+                slivers: [
+                  // Bagian Header dan Search Bar
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Temukan Resep',
+                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            'Masakan Nusantara Favoritmu',
+                            style: Theme.of(context).textTheme.headlineMedium,
+                          ),
+                          const SizedBox(height: 20),
+                          TextField(
+                            controller: _searchController,
+                            onSubmitted: (_) => _performSearch(),
+                            decoration: InputDecoration(
+                              hintText: 'Cari soto, rendang...',
+                              prefixIcon: const Icon(Icons.search),
+                              suffixIcon: IconButton(
+                                icon: const Icon(Icons.send),
+                                onPressed: _performSearch,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                ),
-                
-                if (_searchController.text.isEmpty) ...[
-                  _buildSectionTitle(context, 'Kreasi Komunitas'),
-                  _buildUserRecipesGrid(provider),
-                  const SliverToBoxAdapter(child: SizedBox(height: 16.0)),
-                  _buildSectionTitle(context, 'Resep Populer'),
-                ] else ...[
-                  _buildSectionTitle(context, 'Hasil Pencarian'),
+                  
+                  // Menampilkan bagian-bagian berdasarkan status pencarian
+                  if (_searchController.text.isEmpty) ...[
+                    _buildSectionTitle(context, 'Kreasi Komunitas'),
+                    _buildUserRecipesGrid(provider),
+                    const SliverToBoxAdapter(child: SizedBox(height: 16.0)),
+                    _buildSectionTitle(context, 'Resep Populer'),
+                  ] else ...[
+                    _buildSectionTitle(context, 'Hasil Pencarian'),
+                  ],
+
+                  // Grid untuk menampilkan resep dari API
+                  _buildApiRecipesGrid(provider),
                 ],
-
-                _buildApiRecipesGrid(provider),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(BuildContext context, String title) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-        child: Text(
-          title,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            );
+          },
         ),
       ),
     );
   }
 
+  // Helper widget untuk judul setiap seksi
+  Widget _buildSectionTitle(BuildContext context, String title) {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+        child: Text(
+          title,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+        ),
+      ),
+    );
+  }
+
+  // Helper widget untuk membangun grid resep komunitas
   Widget _buildUserRecipesGrid(RecipeProvider provider) {
     if (provider.allUserRecipes.isEmpty) {
       return const SliverToBoxAdapter(child: Center(child: Padding(padding: EdgeInsets.all(20.0), child: Text('Belum ada resep dari komunitas.'))));
@@ -126,10 +144,11 @@ class _HomeScreenState extends State<HomeScreen> {
         delegate: SliverChildBuilderDelegate(
           (context, index) {
             final recipe = provider.allUserRecipes[index];
+            final imageUrl = recipe.imageUrl ?? 'https://placehold.co/600x400/orange/white?text=${recipe.title.substring(0,1)}';
             return RecipeCard(
               id: recipe.id.toString(),
               title: recipe.title,
-              imageUrl: recipe.imageUrl ?? 'https://placehold.co/600x400/green/white?text=${recipe.title.substring(0,1)}',
+              imageUrl: imageUrl,
               onTap: () => _navigateToUserRecipeDetail(recipe),
               userRecipe: recipe,
             );
@@ -140,6 +159,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // Helper widget untuk membangun grid resep dari API
   Widget _buildApiRecipesGrid(RecipeProvider provider) {
     if (provider.isLoading) {
       return const SliverFillRemaining(child: Center(child: CircularProgressIndicator()));
@@ -161,7 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
               title: recipe.strMeal,
               imageUrl: recipe.strMealThumb,
               meal: recipe, 
-              onTap: () => _navigateToApiDetail(recipe.idMeal),
+              onTap: () => _navigateToApiDetail(recipe.idMeal, recipe.strMealThumb),
             );
           },
           childCount: provider.apiRecipes.length,
