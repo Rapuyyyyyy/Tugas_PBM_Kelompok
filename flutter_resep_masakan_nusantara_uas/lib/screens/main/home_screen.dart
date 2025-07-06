@@ -84,8 +84,35 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 
                 if (_searchController.text.isEmpty) ...[
+<<<<<<< HEAD
                   _buildSectionTitle(context, 'Kreasi Komunitas'),
                   _buildUserRecipesGrid(provider),
+=======
+                  _buildSectionTitle(context, 'KREASI KOMUNITAS'),
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    sliver: filteredUserRecipes.isEmpty
+                        ? const SliverToBoxAdapter(child: Center(child: Padding(padding: EdgeInsets.all(20.0), child: Text('Belum ada resep dari komunitas.'))))
+                        : SliverGrid(
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2, childAspectRatio: 0.8, crossAxisSpacing: 10, mainAxisSpacing: 10,
+                            ),
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                                final recipe = filteredUserRecipes[index];
+                                return RecipeCard(
+                                  id: recipe.id.toString(),
+                                  title: recipe.title,
+                                  imageUrl: recipe.imageUrl ?? 'https://placehold.co/600x400/green/white?text=${recipe.title.substring(0,1)}',
+                                  onTap: () => _navigateToUserRecipeDetail(recipe),
+                                  userRecipe: recipe,
+                                );
+                              },
+                              childCount: filteredUserRecipes.length,
+                            ),
+                          ),
+                  ),
+>>>>>>> 4b41c087c4d9e0ab1240cfa92e54727ace9aae5f
                   const SliverToBoxAdapter(child: SizedBox(height: 16.0)),
                   _buildSectionTitle(context, 'Resep Populer'),
                 ] else ...[
