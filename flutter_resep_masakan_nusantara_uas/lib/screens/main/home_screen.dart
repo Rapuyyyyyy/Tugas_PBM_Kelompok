@@ -89,7 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 
                 if (_searchController.text.isEmpty) ...[
-                  _buildSectionTitle(context, 'Kreasi Komunitas'),
+                  _buildSectionTitle(context, 'KREASI KOMUNITAS'),
                   SliverPadding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     sliver: filteredUserRecipes.isEmpty
