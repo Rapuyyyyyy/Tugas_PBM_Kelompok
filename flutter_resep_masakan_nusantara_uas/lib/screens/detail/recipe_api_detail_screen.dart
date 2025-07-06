@@ -10,17 +10,14 @@ class RecipeApiDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: FutureBuilder<MealDetail>(
+      body: FutureBuilder<MealDetail?>(
         future: ApiService().fetchRecipeDetails(mealId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-          if (!snapshot.hasData) {
-            return const Center(child: Text('Resep tidak ditemukan.'));
+          if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
+            return Center(child: Text('Gagal memuat detail resep.\nError: ${snapshot.error ?? 'Data tidak ditemukan'}'));
           }
 
           final meal = snapshot.data!;
@@ -33,9 +30,7 @@ class RecipeApiDetailScreen extends StatelessWidget {
                 flexibleSpace: FlexibleSpaceBar(
                   title: Text(
                     meal.strMeal,
-                    style: const TextStyle(shadows: [
-                      Shadow(color: Colors.black, blurRadius: 10)
-                    ]),
+                    style: const TextStyle(shadows: [Shadow(color: Colors.black, blurRadius: 10)]),
                   ),
                   background: Image.network(
                     meal.strMealThumb,
@@ -49,29 +44,22 @@ class RecipeApiDetailScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Bagian Kategori dan Asal
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          _buildInfoChip(Icons.category, meal.strCategory),
-                          _buildInfoChip(Icons.public, meal.strArea),
+                          Chip(avatar: const Icon(Icons.category), label: Text(meal.strCategory)),
+                          Chip(avatar: const Icon(Icons.public), label: Text(meal.strArea)),
                         ],
                       ),
                       const Divider(height: 32),
-
-                      // Bagian Bahan-bahan
-                      Text('Bahan-bahan', style: Theme.of(context).textTheme.headlineSmall),
+                      Text('Bahan-bahan', style: Theme.of(context).textTheme.titleLarge),
                       const SizedBox(height: 8),
-                      _buildIngredientsList(meal),
+                      _buildIngredientsList(context, meal),
                       const Divider(height: 32),
-
-                      // Bagian Langkah-langkah
-                      Text('Langkah-langkah', style: Theme.of(context).textTheme.headlineSmall),
+                      Text('Langkah-langkah', style: Theme.of(context).textTheme.titleLarge),
                       const SizedBox(height: 8),
-                      Text(
-                        meal.strInstructions,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.5),
-                      ),
+                      // PERBAIKAN: Panggil metode baru untuk menampilkan daftar langkah
+                      _buildStepsList(context, meal.strInstructions),
                     ],
                   ),
                 ),
@@ -82,15 +70,8 @@ class RecipeApiDetailScreen extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildInfoChip(IconData icon, String text) {
-    return Chip(
-      avatar: Icon(icon),
-      label: Text(text),
-    );
-  }
-
-  Widget _buildIngredientsList(MealDetail meal) {
+  
+  Widget _buildIngredientsList(BuildContext context, MealDetail meal) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(12.0),
@@ -108,6 +89,32 @@ class RecipeApiDetailScreen extends StatelessWidget {
           }),
         ),
       ),
+    );
+  }
+
+  // PERBAIKAN: Widget baru untuk menampilkan daftar langkah-langkah
+  Widget _buildStepsList(BuildContext context, String instructions) {
+    // Memecah string instruksi menjadi daftar berdasarkan baris baru
+    final steps = instructions.split('\r\n').where((s) => s.isNotEmpty).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: List.generate(steps.length, (index) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                radius: 14,
+                child: Text('${index + 1}'),
+              ),
+              const SizedBox(width: 12),
+              Expanded(child: Text(steps[index], style: const TextStyle(fontSize: 16, height: 1.4))),
+            ],
+          ),
+        );
+      }),
     );
   }
 }

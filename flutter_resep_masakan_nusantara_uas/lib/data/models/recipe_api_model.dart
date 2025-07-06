@@ -1,4 +1,3 @@
-// Model untuk daftar resep (API)
 class Meal {
   final String idMeal;
   final String strMeal;
@@ -15,7 +14,6 @@ class Meal {
   }
 }
 
-// Model untuk detail resep (API)
 class MealDetail {
   final String idMeal;
   final String strMeal;
@@ -42,14 +40,12 @@ class MealDetail {
   factory MealDetail.fromJson(Map<String, dynamic> json) {
     List<String> ingredients = [];
     List<String> measures = [];
-
     for (int i = 1; i <= 20; i++) {
       if (json['strIngredient$i'] != null && json['strIngredient$i'].isNotEmpty) {
         ingredients.add(json['strIngredient$i']);
         measures.add(json['strMeasure$i']);
       }
     }
-
     return MealDetail(
       idMeal: json['idMeal'],
       strMeal: json['strMeal'],

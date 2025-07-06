@@ -20,7 +20,6 @@ class RecipeProvider with ChangeNotifier {
   }
 
   User? get currentUser => _currentUser;
-
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
@@ -35,18 +34,21 @@ class RecipeProvider with ChangeNotifier {
   
   List<UserRecipe> _allUserRecipes = [];
   List<UserRecipe> get allUserRecipes => _allUserRecipes;
-
   Map<String, UserRecipe> _userRecipeMap = {};
   Map<String, UserRecipe> get userRecipeMap => _userRecipeMap;
 
   Future<void> fetchApiRecipes() async {
     _isLoading = true;
     notifyListeners();
-    try {
-      _apiRecipes = await _apiService.fetchIndonesianRecipes();
-    } catch (e) {
-      debugPrint('Error fetching API recipes: $e');
-    }
+    _apiRecipes = await _apiService.fetchIndonesianRecipes();
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> searchApiRecipes(String query) async {
+    _isLoading = true;
+    notifyListeners();
+    _apiRecipes = await _apiService.searchRecipes(query);
     _isLoading = false;
     notifyListeners();
   }
@@ -57,7 +59,6 @@ class RecipeProvider with ChangeNotifier {
   
   Future<void> fetchFavorites() async {
     if (_currentUser == null) return;
-    // PERBAIKAN: Hapus '!' yang tidak perlu
     final favMaps = await _dbHelper.getFavorites(_currentUser.id!);
     _favoriteRecipes = favMaps.map((map) => Favorite.fromMap(map)).toList();
     notifyListeners();
@@ -71,7 +72,6 @@ class RecipeProvider with ChangeNotifier {
 
   Future<void> fetchUserRecipes() async {
     if (_currentUser == null) return;
-    // PERBAIKAN: Hapus '!' yang tidak perlu
     _userRecipes = await _dbHelper.getUserRecipes(_currentUser.id!);
     notifyListeners();
   }
@@ -80,7 +80,6 @@ class RecipeProvider with ChangeNotifier {
     if (_currentUser == null) return;
     final favorite = Favorite(
       recipeId: meal.idMeal,
-      // PERBAIKAN: Hapus '!' yang tidak perlu
       userId: _currentUser.id!,
       isApiRecipe: true,
       title: meal.strMeal,
@@ -94,7 +93,6 @@ class RecipeProvider with ChangeNotifier {
     if (_currentUser == null) return;
     final favorite = Favorite(
       recipeId: recipe.id.toString(),
-      // PERBAIKAN: Hapus '!' yang tidak perlu
       userId: _currentUser.id!,
       isApiRecipe: false,
       title: recipe.title,
@@ -106,15 +104,8 @@ class RecipeProvider with ChangeNotifier {
 
   Future<void> removeFavorite(String recipeId) async {
     if (_currentUser == null) return;
-    // PERBAIKAN: Hapus '!' yang tidak perlu
     await _dbHelper.removeFavorite(recipeId, _currentUser.id!);
     await fetchFavorites();
-  }
-
-  Future<bool> isFavorite(String recipeId) async {
-    if (_currentUser == null) return false;
-    // PERBAIKAN: Hapus '!' yang tidak perlu
-    return await _dbHelper.isFavorite(recipeId, _currentUser.id!);
   }
 
   Future<void> addUserRecipe(UserRecipe recipe) async {

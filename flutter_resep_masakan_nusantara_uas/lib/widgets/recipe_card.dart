@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-// PERBAIKAN: Tambahkan import yang hilang
 import 'package:flutter_resep_masakan_nusantara_uas/data/models/recipe_db_model.dart';
+// PERBAIKAN: Import model yang benar
 import 'package:flutter_resep_masakan_nusantara_uas/data/models/recipe_api_model.dart';
 import 'package:flutter_resep_masakan_nusantara_uas/providers/recipe_provider.dart';
 import 'package:provider/provider.dart';
@@ -10,7 +10,9 @@ class RecipeCard extends StatelessWidget {
   final String title;
   final String imageUrl;
   final VoidCallback onTap;
-  final Meal? meal;
+  
+  // PERBAIKAN: Kembali menggunakan model 'Meal'
+  final Meal? meal; 
   final UserRecipe? userRecipe;
 
   const RecipeCard({
@@ -60,9 +62,7 @@ class RecipeCard extends StatelessWidget {
               right: 8,
               child: Consumer<RecipeProvider>(
                 builder: (context, provider, child) {
-                  // PERBAIKAN: Panggil metode dengan nama yang benar
                   final isFav = provider.isRecipeFavorite(id);
-                  // PERBAIKAN: Panggil getter dengan nama yang benar
                   final isMyOwnRecipe = userRecipe?.userId == provider.currentUser?.id;
 
                   return CircleAvatar(
@@ -92,6 +92,7 @@ class RecipeCard extends StatelessWidget {
                         if (isFav) {
                           provider.removeFavorite(id);
                         } else {
+                          // PERBAIKAN: Gunakan model yang benar
                           if (meal != null) {
                             provider.addApiRecipeToFavorites(meal!);
                           } else if (userRecipe != null) {

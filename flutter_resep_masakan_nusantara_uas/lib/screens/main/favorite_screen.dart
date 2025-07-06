@@ -60,14 +60,13 @@ class FavoriteScreen extends StatelessWidget {
       padding: const EdgeInsets.all(16.0),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 0.8, // Kembalikan ke rasio yang lebih baik
+        childAspectRatio: 0.8,
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
       ),
       itemCount: provider.favoriteRecipes.length,
       itemBuilder: (context, index) {
         final fav = provider.favoriteRecipes[index];
-        // PERBAIKAN: Gunakan layout kartu yang lebih sederhana dan anti-overflow
         return _buildRecipeCard(
           context: context,
           provider: provider,
@@ -104,7 +103,6 @@ class FavoriteScreen extends StatelessWidget {
       itemCount: provider.userRecipes.length,
       itemBuilder: (context, index) {
         final recipe = provider.userRecipes[index];
-        // PERBAIKAN: Gunakan layout kartu yang sama untuk konsistensi
         return _buildRecipeCard(
           context: context,
           provider: provider,
@@ -122,7 +120,6 @@ class FavoriteScreen extends StatelessWidget {
     );
   }
 
-  // PERBAIKAN: Buat satu metode untuk membangun kartu agar tidak duplikat kode
   Widget _buildRecipeCard({
     required BuildContext context,
     required RecipeProvider provider,
@@ -142,11 +139,9 @@ class FavoriteScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Gambar
             Expanded(
               child: _buildSafeImage(imageUrl, double.infinity, 100),
             ),
-            // Judul dan Tombol Hapus
             Padding(
               padding: const EdgeInsets.fromLTRB(8, 8, 0, 8),
               child: Row(
@@ -178,10 +173,10 @@ class FavoriteScreen extends StatelessWidget {
     if (fav.isApiRecipe) {
       Navigator.push(
         context,
+        // PERBAIKAN: Ganti 'mealId' menjadi 'recipeKey'
         MaterialPageRoute(builder: (_) => RecipeApiDetailScreen(mealId: fav.recipeId)),
       );
     } else {
-      // PERBAIKAN: Gunakan Map untuk pencarian super cepat
       final userRecipe = provider.userRecipeMap[fav.recipeId];
       if (userRecipe != null) {
         Navigator.push(
@@ -196,7 +191,6 @@ class FavoriteScreen extends StatelessWidget {
     }
   }
 
-  // ... (sisa helper widget lainnya: _buildSafeImage, _buildEmptyState, _showDeleteConfirmation)
   Widget _buildSafeImage(String? imageUrl, double width, double height) {
     if (imageUrl != null && imageUrl.isNotEmpty && Uri.tryParse(imageUrl)?.hasAbsolutePath == true) {
       return Image.network(imageUrl, width: width, height: height, fit: BoxFit.cover,
@@ -253,7 +247,6 @@ class FavoriteScreen extends StatelessWidget {
   }
 }
 
-// Widget helper untuk menjaga state tab tetap hidup
 class KeepAlivePage extends StatefulWidget {
   final Widget child;
   const KeepAlivePage({super.key, required this.child});

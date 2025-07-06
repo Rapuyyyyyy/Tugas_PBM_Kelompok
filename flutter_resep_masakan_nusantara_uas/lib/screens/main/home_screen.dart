@@ -14,19 +14,33 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String _searchQuery = '';
+  final _searchController = TextEditingController();
 
-  void _navigateToApiDetail(String recipeId) {
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _performSearch() {
+    final query = _searchController.text;
+    if (query.isNotEmpty) {
+      Provider.of<RecipeProvider>(context, listen: false).searchApiRecipes(query);
+    } else {
+      Provider.of<RecipeProvider>(context, listen: false).fetchApiRecipes();
+    }
+  }
+
+  void _navigateToApiDetail(String mealId) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => RecipeApiDetailScreen(mealId: recipeId),
+        builder: (context) => RecipeApiDetailScreen(mealId: mealId),
       ),
     );
   }
   
   void _navigateToUserRecipeDetail(UserRecipe recipe) {
-    if (!mounted) return;
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -38,118 +52,103 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Resep Nusantara'),
-      ),
+      appBar: AppBar(title: const Text('Resep Nusantara')),
       body: Consumer<RecipeProvider>(
         builder: (context, provider, child) {
-          if (provider.isLoading && provider.apiRecipes.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 10),
-                  Text('Memuat resep...'),
-                ],
-              ),
-            );
-          }
-
-          final filteredApiRecipes = provider.apiRecipes
-              .where((recipe) => recipe.strMeal.toLowerCase().contains(_searchQuery.toLowerCase()))
-              .toList();
-
-          final filteredUserRecipes = provider.allUserRecipes
-              .where((recipe) => recipe.title.toLowerCase().contains(_searchQuery.toLowerCase()))
-              .toList();
+          final filteredUserRecipes = _searchController.text.isEmpty
+              ? provider.allUserRecipes
+              : provider.allUserRecipes
+                  .where((recipe) => recipe.title.toLowerCase().contains(_searchController.text.toLowerCase()))
+                  .toList();
 
           return RefreshIndicator(
-            onRefresh: () async {
-              await provider.fetchApiRecipes();
-              await provider.fetchAllUserRecipes();
-            },
+            onRefresh: () => provider.fetchApiRecipes(),
             child: CustomScrollView(
               slivers: [
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: TextField(
-                      onChanged: (value) {
-                        setState(() { _searchQuery = value; });
-                      },
+                      controller: _searchController,
+                      onSubmitted: (_) => _performSearch(),
                       decoration: InputDecoration(
-                        hintText: 'Cari resep apa hari ini?',
+                        hintText: 'Cari soto, rendang...',
                         prefixIcon: const Icon(Icons.search),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.send),
+                          onPressed: _performSearch,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(30),
                           borderSide: BorderSide.none,
                         ),
                         filled: true,
-                        fillColor: Theme.of(context).scaffoldBackgroundColor.withAlpha(200),
                       ),
                     ),
                   ),
                 ),
-                _buildSectionTitle(context, 'Kreasi Komunitas'),
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  sliver: filteredUserRecipes.isEmpty
-                      ? const SliverToBoxAdapter(child: Center(child: Padding(
-                          padding: EdgeInsets.all(20.0),
-                          child: Text('Belum ada resep dari pengguna.'),
-                        )))
-                      : SliverGrid(
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2, childAspectRatio: 0.8, crossAxisSpacing: 10, mainAxisSpacing: 10,
+                
+                if (_searchController.text.isEmpty) ...[
+                  _buildSectionTitle(context, 'Kreasi Komunitas'),
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    sliver: filteredUserRecipes.isEmpty
+                        ? const SliverToBoxAdapter(child: Center(child: Padding(padding: EdgeInsets.all(20.0), child: Text('Belum ada resep dari komunitas.'))))
+                        : SliverGrid(
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2, childAspectRatio: 0.8, crossAxisSpacing: 10, mainAxisSpacing: 10,
+                            ),
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                                final recipe = filteredUserRecipes[index];
+                                return RecipeCard(
+                                  id: recipe.id.toString(),
+                                  title: recipe.title,
+                                  imageUrl: recipe.imageUrl ?? 'https://placehold.co/600x400/green/white?text=${recipe.title.substring(0,1)}',
+                                  onTap: () => _navigateToUserRecipeDetail(recipe),
+                                  userRecipe: recipe,
+                                );
+                              },
+                              childCount: filteredUserRecipes.length,
+                            ),
                           ),
-                          delegate: SliverChildBuilderDelegate(
-                            (context, index) {
-                              final recipe = filteredUserRecipes[index];
-                              return RecipeCard(
-                                id: recipe.id.toString(),
-                                title: recipe.title,
-                                imageUrl: (recipe.imageUrl != null && recipe.imageUrl!.isNotEmpty)
-                                    ? recipe.imageUrl!
-                                    : 'https://placehold.co/600x400/green/white?text=${recipe.title.substring(0,1)}',
-                                onTap: () => _navigateToUserRecipeDetail(recipe),
-                                userRecipe: recipe,
-                              );
-                            },
-                            childCount: filteredUserRecipes.length,
-                          ),
-                        ),
-                ),
-                // Jarak antar bagian
-                const SliverToBoxAdapter(
-                  child: SizedBox(height: 16.0),
-                ),
-                _buildSectionTitle(context, 'Populer dari Nusantara'),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 16.0)),
+                  _buildSectionTitle(context, 'Resep Populer'),
+                ],
+
+                if (_searchController.text.isNotEmpty)
+                  _buildSectionTitle(context, 'Hasil Pencarian'),
+
+                if (provider.isLoading)
+                  const SliverFillRemaining(child: Center(child: CircularProgressIndicator())),
+                
+                if (!provider.isLoading && provider.apiRecipes.isEmpty)
+                  SliverFillRemaining(child: Center(child: Text(_searchController.text.isEmpty ? 'Gagal memuat resep.' : 'Resep tidak ditemukan.'))),
+                
                 SliverPadding(
                   padding: const EdgeInsets.all(16.0),
-                  sliver: filteredApiRecipes.isEmpty && _searchQuery.isNotEmpty
-                  ? const SliverToBoxAdapter(child: Center(child: Padding(
-                          padding: EdgeInsets.all(20.0),
-                          child: Text('Tidak ada resep yang cocok.'),
-                        )))
-                  : SliverGrid(
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2, childAspectRatio: 0.8, crossAxisSpacing: 10, mainAxisSpacing: 10,
-                          ),
-                          delegate: SliverChildBuilderDelegate(
-                            (context, index) {
-                              final recipe = filteredApiRecipes[index];
-                              return RecipeCard(
-                                id: recipe.idMeal,
-                                title: recipe.strMeal,
-                                imageUrl: recipe.strMealThumb,
-                                meal: recipe, // Penting untuk fitur favorit
-                                onTap: () => _navigateToApiDetail(recipe.idMeal),
-                              );
-                            },
-                            childCount: filteredApiRecipes.length,
-                          ),
-                        ),
+                  sliver: SliverGrid(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      childAspectRatio: 0.8,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final recipe = provider.apiRecipes[index];
+                        return RecipeCard(
+                          id: recipe.idMeal,
+                          title: recipe.strMeal,
+                          imageUrl: recipe.strMealThumb,
+                          meal: recipe, 
+                          onTap: () => _navigateToApiDetail(recipe.idMeal),
+                        );
+                      },
+                      childCount: provider.apiRecipes.length,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -162,7 +161,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildSectionTitle(BuildContext context, String title) {
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
         child: Text(
           title,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
