@@ -27,6 +27,9 @@ Aplikasi Resep Masakan Nusantara adalah aplikasi mobile yang dibangun menggunaka
 |------------|--------|-------------|
 | ![Resep](assets/images/Halaman_Resep.png) | ![Search](assets/images/search.png) | ![Navigation](assets/images/NavigationRail.png) | 
 
+## Link Youtube
+ https://youtu.be/64YjoQCFnyE
+
 ## Dependensi
 
 Proyek ini menggunakan beberapa dependensi Flutter untuk mendukung pengembangan dan fungsionalitas aplikasi. Berikut adalah dependensi yang digunakan dalam proyek ini:
